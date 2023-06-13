@@ -1,0 +1,13 @@
+hanlp==2.1.0b47
+jsonlines==3.1.0
+matplotlib==3.7.1
+nltk==3.8.1
+numpy==1.24.2
+pandas==1.5.3
+Requests==2.31.0
+scikit_learn==1.2.2
+spacy==3.5.3
+stanfordcorenlp==3.9.1.1
+textblob==0.17.1
+tiktoken==0.3.0
+tqdm==4.64.1
