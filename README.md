@@ -1,4 +1,4 @@
-# Robustness, Consistency and Credibility Eval for LLMs
+# Robustness, Consistency, and Credibility Eval for LLMs
 
 In recent few months, the **Large Language Models(LLMs)** --- in particular ChatGPT --- have swept the world by causing a huge influence on numerous domains. Assisted by the [WebUI](https://chat.openai.com), open-source models, [APIs](https://platform.openai.com/docs/api-reference), or the [ecosystem Plugins](https://openai.com/blog/chatgpt-plugins), these LLMs successfully immerse into everyone's life, worldwide. 
 
