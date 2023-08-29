@@ -91,7 +91,7 @@ All code has been successfully tested in the **Python 3.10.9** environment.
 > If you want to evaluate models on our custom dataset, please read this section carefully, otherwise you may choose to skip it.
 
 To facilitate auto-interpretation and auto-evaluation, we define a unified data format --- **data primitive** (see paper for more details):
-$$ D=\{\mathbf{x}\}=\{(\mathbf{prompt},\mathbf{p},q,o,a)\} $$
+$$ D=\lbrace\mathbf{x}\rbrace=\lbrace(\mathbf{prompt},\mathbf{p},q,o,a)\rbrace $$
 An example is as follows:
 
 ```json
