@@ -91,7 +91,7 @@ All code has been successfully tested in the **Python 3.10.9** environment.
 > If you want to evaluate models on our custom dataset, please read this section carefully, otherwise you may choose to skip it.
 
 To facilitate auto-interpretation and auto-evaluation, we define a unified data format --- **data primitive** (see paper for more details):
-$$D=\{\mathbf{x}_i\}_{i=1}^n=\{(\mathbf{prompt}_i,\mathbf{p}_i,q_i,o_i,a_i)\}_{i=1}^n$$
+$$ D=\{\mathbf{x}_ i\}_{i=1}^n=\{(\mathbf{prompt}_i,\mathbf{p}_ i,q_i,o_i,a_i)\}_{i=1}^n $$
 An example is as follows:
 
 ```json
