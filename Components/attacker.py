@@ -1,3 +1,7 @@
+import sys, os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import json
 import argparse, os
 from tqdm import tqdm
@@ -129,7 +133,8 @@ class Attacker(object) :
             json.dump(self.result, f, indent = 4)
         f.close()
     
-    def process(self, type = 'robustness', indir = None, outdir = None, dict = None, p_dir = None,
+    def process(self, type = 'robustness', indir = None, outdir = None, dict = None, 
+                p_dir = 'Datasets/Attacked_Data_Primitive/Consistency/prompt_template.json',
                 iter= {'character' : 4, 'word' : 2, 'visual' : 2}, cred : list = ['ri', 'rd', 'rp']) :
         if indir != None : self.read_data(indir)
         elif dict != None : self.assign(dict)
@@ -139,16 +144,17 @@ class Attacker(object) :
         elif type == 'consistency' : self.consistency_sample_generate(json.load(open(p_dir, encoding = 'utf-8')))
 
         if indir == None and outdir == None : return self.result
-        elif outdir == None : outdir = 'Datasets\Attacker_out\\'+type+'\\'+indir.split('\\')[-1][:-5]+'_attacked.json'
+        elif outdir == None : outdir = 'Datasets/Attacker_out/'+type+'/'+indir.split('/')[-1][:-5]+'_attacked.json'
         os.makedirs(os.path.dirname(outdir), exist_ok=True)
         self.save(outdir)
+        # print('The transformed dataset is stored at: '+'Datasets/Attacker_out/')
         return self.result
 
 def main() :
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "--indir",
+        "--file_path",
         type = str,
         nargs = "?",
         default = None,
@@ -156,7 +162,7 @@ def main() :
     )
 
     parser.add_argument(
-        "--outdir",
+        "--save_path",
         type = str,
         nargs = "?",
         default = None,
@@ -188,16 +194,22 @@ def main() :
     )
 
     parser.add_argument(
-        "--prompt_dir",
+        "--prompt_path",
         type = str,
         nargs = "?",
-        default = None
+        default = 'Datasets/prompt_template.json'
     )
 
     opt = parser.parse_args()
     iter = {'character' : opt.iter[0], 'word' : opt.iter[1], 'visual' : opt.iter[2]}
     generator = Attacker()
-    generator.process(p_dir = opt.prompt_dir, type = opt.type, indir = opt.indir, outdir = opt.outdir, iter = iter, cred = opt.cred_operation)
+
+    for type in ['robustness', 'consistency', 'credibility'] :
+        for file_name in ['GSM8K', 'NoahQA', 'AQuA', 'Creak', 'StrategyQA', 'bAbi15', 'bAbi16', 'e-SNLI', 'ECQA', 'QASC', 'SenMaking', 'QED'] :
+            file_path = 'Datasets/Generator_out/'+file_name+'.json'
+            generator.process(type = type, indir = file_path)
+
+    # generator.process(p_dir = opt.prompt_path, type = opt.type, indir = opt.file_path, outdir = opt.save_path, iter = iter, cred = opt.cred_operation)
 
 if __name__ == '__main__' :
     main()

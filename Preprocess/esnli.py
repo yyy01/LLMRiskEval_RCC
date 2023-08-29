@@ -1,9 +1,12 @@
+import sys, os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import pandas as pd
 import json, os
 from format import construct_sample_body, construct_sub_qa_body, construct_option, INCORRECT_OPTION_NAME
 from typing import List, Dict
-
+from tqdm import tqdm
 
 def format_single_sample(question:str, answer:str, option_list:List[str], context:str="") -> Dict:
     sample = construct_sample_body(question, answer, context)
@@ -28,7 +31,7 @@ QUESTION = "What is the logical relationship between premise and hypothesis?"
 def main(file_path:str, save_path:str) -> None:
     data_df = pd.read_csv(file_path)
     data_dict = {}
-    for i in range(len(data_df)):
+    for i in tqdm(range(len(data_df))):
         sample = data_df.loc[i, ['Sentence1', 'Sentence2', 'gold_label']].to_dict()
         sample = format_single_sample(QUESTION, sample['gold_label'], 
                                       option_list=OPTIONS, 

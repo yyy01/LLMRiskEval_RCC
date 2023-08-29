@@ -9,7 +9,7 @@ np.random.seed(0)
 SYMBOL_LIST = ['#', '@', '～', '$', '%', '^', '&', '*', '-', '+', '=', '}', '{', '<', '>']
 
 class ViualTemplate(object):
-    def __init__(self, file:str='DA\\visual_letter_map.json', topn:int=20, is_equal_prob:bool=False) -> None:
+    def __init__(self, file:str='DA/visual_letter_map.json', topn:int=20, is_equal_prob:bool=False) -> None:
         with open(file, 'r') as f:
             self.template_dict = json.load(f)
         # the hyperparameters are set according to https://github.com/UKPLab/naacl2019-like-humans-visual-attacks 

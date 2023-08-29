@@ -4,7 +4,11 @@ import argparse, os
 from tqdm import tqdm
 import json
 import numpy as np
-from dst_preprocess import ecqa, esnli, qasc
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from Preprocess import ecqa, esnli, qasc, senmaking, qed
 
 class Converter(object) :
     def __init__(
@@ -270,19 +274,23 @@ class DataCleaner(Converter) :
         if outdir != None : self.save(outdir)
         return result, sum, qsum
     
-    def process(self, label = 'GSM8K', outdir = None) :
-        if outdir == None : outdir = 'Datasets\Converter_out\\'+label+'.json'
+    def process(self, Label = ['GSM8K', 'NoahQA', 'AQuA', 'Creak', 'StrategyQA', 'bAbi15', 'bAbi16', 'e-SNLI', 'ECQA', 'QASC', 'SenMaking', 'QED']) :
         key_dict = {'GSM8K' : '.jsonl', 'NoahQA': '.json', 'AQuA' : '.jsonl', 
                     'Creak' : '.jsonl', 'StrategyQA' : '.json', 'bAbi15' : '.txt', 
-                    'bAbi16' : '.txt', 'e-SNLI' : '.csv', 'ECQA' : '.csv', 'QASC' : '.jsonl'}
-        indir = 'Datasets\Raw_Data\\'+label+key_dict[label]
-        func_dict = {'GSM8K' : self.process_8k, 'NoahQA': self.process_Noah, 'AQuA' : self.process_aq, 'Creak' : self.process_creak, 
-                     'StrategyQA' : self.process_strategyqa, 'bAbi15' : self.process_babi15, 'bAbi16' : self.process_babi16,
-                     'e-SNLI' : esnli.process, 'ECQA' : ecqa.process, 'QASC' : qasc.process}
-        
-        if outdir != None : os.makedirs(os.path.dirname(outdir), exist_ok=True)
-        if label in ['e-SNLI', 'ECQA', 'QASC'] : self.result = func_dict[label](indir, outdir)
-        else : func_dict[label](indir, outdir)
+                    'bAbi16' : '.txt', 'e-SNLI' : '.csv', 'ECQA' : '.csv',
+                    'QASC' : '.jsonl', 'SenMaking' : '.jsonl', 'QED' : '.jsonl'}
+        for label in Label :
+            indir = 'Datasets/Raw_Data/'+label+key_dict[label]
+            outdir = 'Datasets/Converter_out/'+label+'.json'
+            func_dict = {'GSM8K' : self.process_8k, 'NoahQA': self.process_Noah, 'AQuA' : self.process_aq, 'Creak' : self.process_creak, 
+                        'StrategyQA' : self.process_strategyqa, 'bAbi15' : self.process_babi15, 'bAbi16' : self.process_babi16,
+                        'e-SNLI' : esnli.process, 'ECQA' : ecqa.process, 'QASC' : qasc.process,
+                        'SenMaking' : senmaking.process, 'QED' : qed.process}
+            
+            if outdir != None : os.makedirs(os.path.dirname(outdir), exist_ok=True)
+            if label in ['e-SNLI', 'ECQA', 'QASC', 'SenMaking', 'QED'] : self.result = func_dict[label](indir, outdir)
+            else : func_dict[label](indir, outdir)
+        # print('The transformed dataset is stored at: '+'Datasets/Converter_out/')
         return self.result
 
 def main() :
@@ -290,24 +298,17 @@ def main() :
     parser.add_argument(
         "--dataset",
         type = str,
-        nargs = "?",
-        default = "GSM8K",
+        nargs = "+",
+        default = ['GSM8K', 'NoahQA', 'AQuA', 'Creak', 'StrategyQA', 'bAbi15', 'bAbi16', 'e-SNLI', 'ECQA', 'QASC', 'SenMaking', 'QED'],
         help = "dataset name"
-    )
-
-    parser.add_argument(
-        "--outdir",
-        type = str,
-        nargs = "?",
-        default = None,
-        help = "output directory"
     )
 
     opt = parser.parse_args()
 
     converter = DataCleaner()
-
-    converter.process(opt.dataset, opt.outdir) 
+    converter.process(opt.dataset) 
+    
+    print('The transformed dataset is stored at: '+'Datasets/Converter_out/')
     
 if __name__ == '__main__' :
     main()

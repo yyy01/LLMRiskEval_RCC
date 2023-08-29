@@ -1,3 +1,7 @@
+import sys, os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import re
 import argparse, os
 from tqdm import tqdm
@@ -7,6 +11,8 @@ from DA.eda import *
 from textblob import TextBlob
 import numpy as np
 from fractions import Fraction
+
+from Preprocess import ecqa, esnli, qasc, senmaking, qed
 
 class Generator(object) :
     def __init__(
@@ -36,8 +42,8 @@ class Generator(object) :
         word = TextBlob(y).words
         return word[0].singularize().lower() != x.lower() and word[0].pluralize().lower() != x.lower()
     
-    def generator_word(self, passage) :
-        HanLP = hanlp.load(hanlp.pretrained.mtl.UD_ONTONOTES_TOK_POS_LEM_FEA_NER_SRL_DEP_SDP_CON_XLMR_BASE)
+    def generator_word(self, HanLP, passage) :
+        
         sentence = HanLP(passage.strip(' '))
 
         tok, pos = list([i.lower() for i in sentence['tok']]), list(sentence['pos'])
@@ -321,15 +327,17 @@ class Options_generator(Generator, Generator_text) :
     
     def process(self, indir = None, dict = None, outdir = None) :
         if indir != None : self.read_dict(indir)
-        else : self.dict = dict
+        elif dict != None : self.dict = dict
+        else : raise ValueError
         POP_list = []
+        HanLP = hanlp.load(hanlp.pretrained.mtl.UD_ONTONOTES_TOK_POS_LEM_FEA_NER_SRL_DEP_SDP_CON_XLMR_BASE)
         for id in tqdm(self.dict) :
             # if int(id) > 5 : POP_list.append(id); continue
             _dict = self.dict[id]
             f = False
             pop_list = []
             for ID, q in enumerate(_dict['sub-qa']) :
-                if 'options' in q : continue
+                if 'options' in q : f = True; continue
                 if q['answer'] in ['', None] : 
                     pop_list.append(ID)
                     continue
@@ -344,7 +352,7 @@ class Options_generator(Generator, Generator_text) :
                     Generator.generator_tf(self)
                 elif type == 'Word' :
                     Generator.assign(self, q)
-                    Generator.generator_word(self, _dict['passage'])
+                    Generator.generator_word(self, HanLP, _dict['passage'])
                 else :
                     Generator_text.assign(self, q)
                     Generator_text.text_options_generator(self)
@@ -357,21 +365,22 @@ class Options_generator(Generator, Generator_text) :
         
         for id in POP_list : self.dict.pop(id)
 
-        print('*************************************')
+        # print('*************************************')
         for id in self.dict :
             # print(id)
             _dict = self.dict[id]
             for ID, q in enumerate(_dict['sub-qa']) :
                 type = self.opt_type(q['answer'])
                 if type == 'Text' : self.confusion_proc(id, ID)
-        print('*************************************')
+        # print('*************************************')
         
         self.item_proc()
-        print('*************************************')
+        # print('*************************************')
         if indir == None and outdir == None : return
-        if outdir == None : outdir = 'Datasets\Generater_out\\'+indir.split('\\')[-1]
+        if outdir == None : outdir = 'Datasets/Generator_out/'+indir.split('/')[-1]
         os.makedirs(os.path.dirname(outdir), exist_ok=True)
         self.save(outdir)
+        # print('The transformed dataset is stored at: '+'Datasets/Generator_out/')
         return self.dict
                 
     def item_proc(self) :
@@ -391,15 +400,15 @@ class Options_generator(Generator, Generator_text) :
 def main() :
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--indir",
+        "--file_path",
         type = str,
         nargs = "?",
         default = None,
-        help = "dataset name"
+        help = "input directory"
     )
 
     parser.add_argument(
-        "--outdir",
+        "--save_path",
         type = str,
         nargs = "?",
         default = None,
@@ -409,7 +418,10 @@ def main() :
     opt = parser.parse_args()
 
     Generator = Options_generator()
-    Generator.process(opt.indir, opt.outdir)
+    for file_name in ['GSM8K', 'NoahQA', 'AQuA', 'Creak', 'StrategyQA', 'bAbi15', 'bAbi16', 'e-SNLI', 'ECQA', 'QASC', 'SenMaking', 'QED'] :
+        file_path = 'Datasets/Converter_out/'+file_name+'.json'
+        Generator.process(indir = file_path)
+    # Generator.process(indir = opt.file_path, outdir = opt.save_path)
 
 if __name__ == '__main__' :
     main()

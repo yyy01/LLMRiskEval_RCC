@@ -7,13 +7,13 @@ def get_rate(para) :
     
     for id in para :
         answer = para[id]['answer']
-        _dict = []
+        _dict = {}
 
         for _, type in enumerate(['word_level_ri', 'word_level_rd', 'word_level_rp']) :
             for __ in range(len(answer)) : 
                 _dict[type] = 0
                 for ID in range(10*_, 10*_+10) :
-                    if para[id]['new_passage'][ID]['AnswerPath'][__] != answer[__] :
+                    if para[id]['new_passage'][ID]['answer'][__] != answer[__] :
                         _dict[type] = para[id]['new_passage'][ID]['rate']
                         break
                 if _dict[type] == 0 : _dict[type] = 1.0

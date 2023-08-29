@@ -5,12 +5,12 @@ with open('README.md') as f:
 
 setuptools.setup(
     name='rcctool',
-    version='0.0.1',
+    version='1.0.0',
     description='RCCtool',
     long_description=_LONG_DESCRIPTION,
     long_description_content_type='text/markdown',
-    author='ZJUM3',
-    url='https://github.com/ZJUM3/LLMEval_RCC',
+    author='yyy01',
+    url='https://github.com/yyy01/LLMRiskEval_RCC',
     packages=setuptools.find_packages(),
     install_requires=[ ],
     extras_require={

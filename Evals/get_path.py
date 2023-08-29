@@ -1,5 +1,5 @@
 import re
-import tqdm
+from tqdm import tqdm
 
 def judge(response, _dict) :
     id = 0
@@ -22,7 +22,7 @@ def judge(response, _dict) :
         try :
             _dict['sub-qa'][id]['input'][item]
         except:
-            _dict.append('No options'); id += 1; continue
+            result.append('No options'); id += 1; continue
         type = _dict['sub-qa'][id]['options'][_dict['sub-qa'][id]['input'][item]]['option_type']
         result.append(type)
         id += 1
@@ -33,9 +33,11 @@ def judge(response, _dict) :
     return result
 
 def get_path(para, data) :
-    print("*********************STRAT GETTING ANSWER PATH*********************")
+    print("********************STRAT GETTING ANSWER PATH********************")
     for i in tqdm(para) :
-        para[i]['answer'] = judge(para[i]['response'], data[i])
+        if 'response' in para[i] : para[i]['answer'] = judge(para[i]['response'], data[i])
+        else : para[i]['answer'] = judge(para[i]['new_passage'][0]['response'], data[i])
+        # st = 0 if 'response' in para[i] else 1
 
         for q in para[i]['new_passage'] :
             q['answer'] = judge(q['response'], data[i])

@@ -1,7 +1,6 @@
 import argparse, os
 import json
 import time
-import converter, generator, attacker
 from API import api
 from tqdm import tqdm
 
@@ -38,8 +37,7 @@ class Interpreter(object) :
             self.question[-1].append(q)
     
     def get_question(self, type = 'robustness', 
-                     prompt = 'Next, I will ask you a series of questions given a description, and you will have to choose one of several candidate options that you think is correct.  The description is \"',
-                     prompt_template : list = None) :
+                     prompt = 'Next, I will ask you a series of questions given a description, and you will have to choose one of several candidate options that you think is correct.  The description is \"') :
         self.question = []
         for id in tqdm(self.data) :
             _dict = self.data[id]
@@ -49,22 +47,24 @@ class Interpreter(object) :
                     self.get_single_question(_dict, prompt, p['passage'])
             
             elif type == 'consistency' :
-                for p in prompt_template :
-                    self.get_single_question(_dict, p, self.para[id]['ori_passage'])
+                for p in self.para[id]['new_passage'] :
+                    self.get_single_question(_dict, p['passage'], self.para[id]['ori_passage'])
 
             else : raise AttributeError
 
         return self.question
     
-    def get_chatgpt_answer(self, api_key : list[str], num_thread) :
+    def get_chatgpt_answer(self, api_key : list[str], num_thread, type = 'robustness') :
+        # print(self.question[0])
         chatbot = api.ChatbotWrapper(config={"api_key":api_key, "proxy":"http://127.0.0.1:1087"})
         start = time.time() 
         all_responses = chatbot.ask_batch(self.question, num_thread)
         end = time.time()
         i = 0
         for id in self.data :
-            self.para[id]['response'] = all_responses[i]
-            i += 1
+            if type in ['robustness', 'credibility']:
+                self.para[id]['response'] = all_responses[i]
+                i += 1
             if 'new_passage' in self.para[id] :
                 for _ in self.para[id]['new_passage'] :
                     _['response'] = all_responses[i]
@@ -90,51 +90,42 @@ class Interpreter(object) :
         f.close()
 
     def process(self, dict_data = None, dict_para = None, indir_data = None, indir_para = None, outdir = None, 
-                type = 'robustness', indir_prompt = None, api_key : list[str] = None, num_thread = 100, use_chatgpt = True) :
+                type = 'robustness', api_key : list[str] = None, num_thread = 10, use_chatgpt = True) :
         if indir_data != None : self.read_data(indir_data)
         elif dict_data != None : self.data = dict_data
         if indir_para != None : self.read_para(indir_para)
         elif dict_para != None : self.para = dict_para
 
-        if type in ['robustness', 'credibility'] : self.get_question(type = type)
-        elif type == 'consistency' :
-            prompt_template = json.load(open(indir_prompt, encoding = 'utf-8'))
-            self.get_question(type = type, prompt_template = prompt_template)
+        self.get_question(type = type)
         if use_chatgpt :
-            self.get_chatgpt_answer(api_key = api_key, num_thread = num_thread)
+            self.get_chatgpt_answer(api_key = api_key, num_thread = num_thread, type = type)
 
-        if outdir == None : outdir = 'Datasets\Interpreter_out\\'+type+'\\'+indir_data.split('\\')[-1]
+        if outdir == None : outdir = 'Datasets/Interpreter_out/'+type+'/'+indir_data.split('/')[-1]
         if not use_chatgpt : outdir = outdir[:-5]+'_question.json'
         os.makedirs(os.path.dirname(outdir), exist_ok=True)
         self.save(self.para, outdir) if use_chatgpt else self.save(self.question, outdir)
+        # print('The transformed dataset is stored at: '+'Datasets/Interpreter_out/')
         return self.para if use_chatgpt else None
 
 def main() :
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "--data_primitive_indir",
+        "--data_primitive_path",
         type = str,
         nargs = "?",
         default = None
     )
 
     parser.add_argument(
-        "--attacked_indir",
+        "--attacked_path",
         type = str,
         nargs = "?",
         default = None
     )
 
     parser.add_argument(
-        "--prompt_indir",
-        type = str,
-        nargs = "?",
-        default = None
-    )
-
-    parser.add_argument(
-        "--outdir",
+        "--save_path",
         type = str,
         nargs = "?",
         default = None,
@@ -152,7 +143,7 @@ def main() :
         "--num_thread",
         type = int,
         nargs = "?",
-        default = 100
+        default = 10
     )
 
     parser.add_argument(
@@ -166,13 +157,19 @@ def main() :
         type = str,
         nargs = "?",
         default = "robustness",
-        help = "test type including robusteness, consistency and credibility"
+        help = "test type including robustness, consistency and credibility"
     )
 
     opt = parser.parse_args()
     solver = Interpreter()
-    solver.process(indir_data = opt.data_primitive_indir, indir_para = opt.attacked_indir, indir_prompt = opt.prompt_indir, 
-                   api_key = opt.api_key, use_chatgpt = opt.useChatGPT, type = opt.type)
+
+    for type in ['robustness', 'consistency', 'credibility'] :
+        for file_name in ['GSM8K', 'NoahQA', 'AQuA', 'Creak', 'StrategyQA', 'bAbi15', 'bAbi16', 'e-SNLI', 'ECQA', 'QASC', 'SenMaking', 'QED'] :
+            para_path = 'Datasets/Attacker_out/'+type+'/'+file_name+'_attacked.json'
+            data_path = 'Datasets/Generator_out/'+file_name+'.json'
+            solver.process(indir_data = data_path, indir_para = para_path, api_key = [''], type = type)
+    # solver.process(indir_data = opt.data_primitive_indir, indir_para = opt.attacked_indir,  
+    #                api_key = opt.api_key, use_chatgpt = opt.useChatGPT, type = opt.type)
 
 if __name__ == '__main__' :
     main()

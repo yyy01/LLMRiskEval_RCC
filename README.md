@@ -10,15 +10,15 @@ Driven by the above two points, we introduce this automated framework to conduct
 
 ## Table of Contents
 
-* [Motivation](## Motivation)
-* [Repo Structure](## Repo Structure)
-* [Pre-process](## Pre-process)
-* [Evaluation on Benchmarks](## Evaluation on benchmarks)
-* [Evaluation on Your Datasets](## Evaluation on your datasets)
-* [Benchmarks](## Benchmarks)
-* [Contribution](## Contribution)
-* [Paper](## Paper)
-* [Citation](## citation)
+* [Motivation](##Motivation)
+* [Repo Structure](##Repo-Structure)
+* [Installation](##Installation)
+* [Data Format](##Data-Format)
+* [Evaluation on Benchmarks](##Evaluation-on-Benchmarks)
+* [Benchmarks](##Benchmarks)
+* [Contribution](##Contribution)
+* [Paper](##Paper)
+* [Citation](##citation)
 
 
 
@@ -28,9 +28,9 @@ We open-source this tool and framework to assess LLM's performance and identify 
 
 - **Robustness** focuses on examining LLMs' ability to handle adversarial examples, aligning with real-world deployment scenarios.
 - **Consistency** aims to measure the distinction in LLMs' responses to semantically similar inputs.
-- **$$\textsf{RTI}$$ (Credibility)** provides insights into the datasets used to train LLMs. This $$\textsf{RTI}$$ score reflects the relative probability that the datasets have been memorized by LLMs.
+- **$\textsf{RTI}$ (Credibility)** provides insights into the datasets used to train LLMs. This score reflects the relative probability that the datasets have been memorized by LLMs.
 
-More details are shown in our [paper](## Assessing Hidden Risks of LLMs: An Empirical Study on Robustness, Consistency, and Credibility).
+More details are shown in our [paper](##Paper).
 
 
 
@@ -52,9 +52,10 @@ More details are shown in our [paper](## Assessing Hidden Risks of LLMs: An Empi
 	|- token_level_attack.py
 	|- visual_letter_map.json
 - Datasets: benchmark datasets
-	|- Attacked_Data_Primitive
-	|- Data_Primitive
-	|- Raw_Data
+	|- Attacker_out : attacked data primitives benchmark
+	|- Generator_out : data primitives benchmarks
+    |- Raw_Data
+    |- prompt_template.json : standard prompts for consistency evaluation
 - Evals: scripts for evaluting from different aspects
 	|- conEval.py
     |- creEval.py
@@ -67,6 +68,8 @@ More details are shown in our [paper](## Assessing Hidden Risks of LLMs: An Empi
     |- gsm8k_clean.py
     |- noah_clean.py
     |- qasc.py
+    |- qed.py
+    |- senmaking.py
 - eval.py: script for evaluation of the output responses of the LLMs
 - processor.py: script for generating a questions list as the input of the LLMs
 ```
@@ -80,7 +83,7 @@ To install our tool, simply run this command:
 ```python
 pip install -e .
 ```
-
+All code has been successfully tested in the **Python 3.10.9** environment.
 
 
 ## Data Format
@@ -88,28 +91,8 @@ pip install -e .
 > If you want to evaluate models on our custom dataset, please read this section carefully, otherwise you may choose to skip it.
 
 To facilitate auto-interpretation and auto-evaluation, we define a unified data format --- **data primitive** (see paper for more details):
-$$
-D=\{\mathbf{x}_i\}_{i=1}^n=\{(\mathbf{prompt}_i,\mathbf{p}_i,q_i,o_i,a_i)\}_{i=1}^n
-$$
+$$D=\{\mathbf{x}_i\}_{i=1}^n=\{(\mathbf{prompt}_i,\mathbf{p}_i,q_i,o_i,a_i)\}_{i=1}^n$$
 An example is as follows:
-
-```json
-{
-    "id" : {
-        "passage" : "...",
-        "sub-qa" : [
-            {
-                "question" : "...",
-                "answer" : "..."
-            }
-        ]
-    }
-}
-```
-
-where `passage` denotes the conditions, and `sub-qa` denotes the sub-questions and corresponding answers connected to the `passage`. 
-
-For datasets with options provided, the data format should be:
 
 ```json
 {
@@ -131,10 +114,14 @@ For datasets with options provided, the data format should be:
 }
 ```
 
+where `passage` denotes the conditions, and `sub-qa` denotes the sub-questions and corresponding answers connected to the `passage`. 
+
+For datasets withouts options provided, remove the `options` field.
+
 All the datasets in this repository have been converted to this format. **If you need to evaluate models on your custom dataset, please convert your dataset to the above format.** You can refer to `converter.py` for converting raw dataset to the data primitive format (take GSM8K dataset as the example here) :
 
 ```
-python converter.py --dataset 'GSM8K'
+python converter.py
 ```
 
 
@@ -143,40 +130,25 @@ python converter.py --dataset 'GSM8K'
 
 ### Get Input Questions List 
 
-To evaluate on our benchmarks, first obtain a list of questions using the following command. (change `dataset` parameter according to different [benchmarks](## Benchmarks)) :
+To evaluate on our benchmarks, first obtain a list of questions using the following command. (change `dataset` parameter according to different [benchmarks](##Benchmarks)) :
 
-1. Robustness
+1. Robustness or credibility
 
    ```
-   python processor.py --dataset GSM8K --type robustness 
+   python processor.py --type robustness credibility
    ```
 
 2. Consistency
 
    ```
-   python processor.py --dataset GSM8K --type consistency \
-   	--prompt_dir 'Datasets\Attacked data primitive\Consistency\prompt_template.json'
+   python processor.py --type consistency \
+   	--prompt_dir 'Datasets\prompt_template.json'
    ```
 
-3. credibility
-
-   ```
-   python processor.py --dataset GSM8K --type credibility 
-   ```
-
-Then, feed the question list into a language model, which can be your own model or any publicly available model. And, you need to format the reponse of model as a list: `[['response to Q1 of sample1', 'response to Q2 of sample1', ...], ['response to Q1 of sample2', ...], ...]`.
-
-### Evaluation
-
-Next, evaluate model outputs (formated) using the following command:
-
-```Shell
-python eval.py \
-	--response_dir '' \ # the path of the formated reponse list
-	--indir '' \ # the path of the data primitive format file.
-	--type robustness
+Then, feed the question list into a language model, which can be your own model or any publicly available model. And, you need to format the reponse of model as a list: 
+```python
+[['response to Q1 of sample1', 'response to Q2 of sample1', ...], ['response to Q1 of sample2', ...], ...]
 ```
-
 
 Also, `ChatGPT` inference is provided for direct evaluation :
 
@@ -185,33 +157,28 @@ python processor.py --useChatGPT --api_key ['', '']
 # provide multiple keys `api_key` to speed up the evaluation process
 ```
 
+### Evaluation
 
+Next, evaluate model outputs (formated) using the following command:
 
-## Evaluation on Custom Datasets
-
-1. Format custom dataset into [data primitive](## Data Format).
-2. Use the following command to obtain a question list, processed from the dataset you uploaded through the file path `indir`:
-
-    ```shell
-    python processor.py --indir '' --type robustness 
-    ```
-
-The remaining steps are the same as the [benchmark testing](## Evaluation on Benchmarks).
-
-
+```Shell
+python eval.py \
+	--response_dir '' \ # the path of the formated reponse list
+	--file_path '' \ # the path of the data primitive format file.
+```
 
 ## Benchmarks
 
 `Datasets/*` directory stores all datasets as benchmarks tests :
 
 - `Raw_Data`: Raw format datasets;
-- `Data_Primitive`: Data primitives format datasets;
-- `Attacked_Data_Primitive`: Attacked data primitives format datasets;
+- `Generator_out`: Data primitives format datasets;
+- `Attacker_out`: Attacked data primitives format datasets;
 
 Related repos:
   - API: [Reverse engineered ChatGPT API](https://github.com/acheong08/ChatGPT)
-  - Datasets: [AQuA](https://github.com/deepmind/AQuA/blob/master/test.json) | [creak](https://github.com/yasumasaonoe/creak/blob/main/data/convert_faviq.py) | [NoahQA](https://github.com/Don-Joey/NoahQA) | [GSM8K](https://github.com/openai/grade-school-math) | [bAbI-tasks](https://github.com/facebookarchive/bAbI-tasks) | [Sen-Making](https://github.com/wangcunxiang/Sen-Making-and-Explanation/tree/master) | [strategyqa](https://github.com/eladsegal/strategyqa) | 
-  - Data augment: [eda_nlp: Data augmentation for NLP, presented at EMNLP 2019](https://github.com/jasonwei20/eda_nlp)
+  - Datasets: [AQuA](https://github.com/deepmind/AQuA/blob/master/test.json) | [creak](https://github.com/yasumasaonoe/creak/blob/main/data/convert_faviq.py) | [NoahQA](https://github.com/Don-Joey/NoahQA) | [GSM8K](https://github.com/openai/grade-school-math) | [bAbI-tasks](https://github.com/facebookarchive/bAbI-tasks) | [Sen-Making](https://github.com/wangcunxiang/Sen-Making-and-Explanation/tree/master) | [strategyqa](https://github.com/eladsegal/strategyqa) | [QASC](https://github.com/allenai/qasc) | [e-SNLI](https://github.com/OanaMariaCamburu/e-SNLI) | [ECQA](https://github.com/dair-iitd/ECQA-Dataset) | [QED](https://github.com/google-research-datasets/QED)
+  - Data augment: [eda_nlp](https://github.com/jasonwei20/eda_nlp) | [HanLP](https://github.com/hankcs/HanLP)
 
 
 
@@ -227,7 +194,7 @@ When you submit a pull request, a CLA bot will automatically determine whether y
 
 More details and benchmark results are shown in the paper "Assessing Hidden Risks of LLMs: An Empirical Study on Robustness, Consistency, and Credibility".
 
-[ArXiv](https://arxiv.org/pdf/2305.10235.pdf)|[Lab Page](http://jakezhao.net/)
+[ArXiv Link](https://arxiv.org/pdf/2305.10235.pdf)
 
 <img src="https://s2.loli.net/2023/06/09/V34xfDP9qTBsYKO.png" alt="Framework" style="zoom:80%;" />
 

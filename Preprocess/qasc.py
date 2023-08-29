@@ -1,6 +1,11 @@
+import sys, os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 import json, os
 from format import construct_sample_body, construct_sub_qa_body, construct_option, INCORRECT_OPTION_NAME, GENERAL_QUESTION
 from typing import List, Dict
+from tqdm import tqdm
 op_num_dict = {}
 IS_USING_GENERAL_QUESTION = False
 
@@ -26,7 +31,7 @@ def main(file_path:str, save_path:str) -> None:
         data_list = [json.loads(line) for line in f]
 
     data_dict = {}
-    for i, item in enumerate(data_list):
+    for i, item in enumerate(tqdm(data_list)):
         sample = item
         ans = ''
         for c in item['question']['choices']:
