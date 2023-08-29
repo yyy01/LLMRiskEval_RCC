@@ -43,26 +43,26 @@ More details are shown in our [paper](##Paper).
 - API: script to fetch responses from the ChatGPT API in bulk
     |- api.py
 - Components
-	|- attacker.py
-	|- converter.py
-	|- generator.py
-	|- interpreter.py
+    |- attacker.py
+    |- converter.py
+    |- generator.py
+    |- interpreter.py
 - DA
-	|- eda.py
-	|- token_level_attack.py
-	|- visual_letter_map.json
+    |- eda.py
+    |- token_level_attack.py
+    |- visual_letter_map.json
 - Datasets: benchmark datasets
-	|- Attacker_out : attacked data primitives benchmark
-	|- Generator_out : data primitives benchmarks
+    |- Attacker_out : attacked data primitives benchmark
+    |- Generator_out : data primitives benchmarks
     |- Raw_Data
     |- prompt_template.json : standard prompts for consistency evaluation
 - Evals: scripts for evaluting from different aspects
-	|- conEval.py
+    |- conEval.py
     |- creEval.py
     |- get_path.py
     |- robEval.py
 - Preprocess: scripts for pre-processing the benchmark datasets
-	|- ecqa.py
+    |- ecqa.py
     |- esnli.py
     |- format.py
     |- gsm8k_clean.py
