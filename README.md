@@ -10,15 +10,15 @@ Driven by the above two points, we introduce this automated framework to conduct
 
 ## Table of Contents
 
-* [Motivation](##Motivation)
-* [Repo Structure](##Repo-Structure)
-* [Installation](##Installation)
-* [Data Format](##Data-Format)
-* [Evaluation on Benchmarks](##Evaluation-on-Benchmarks)
-* [Benchmarks](##Benchmarks)
-* [Contribution](##Contribution)
-* [Paper](##Paper)
-* [Citation](##citation)
+* [Motivation](#motivation)
+* [Repo Structure](#repo-structure)
+* [Installation](#installation)
+* [Data Format](#data-format)
+* [Evaluation on Benchmarks](#evaluation-on-benchmarks)
+* [Benchmarks](#benchmarks)
+* [Contribution](#contribution)
+* [Paper](#paper)
+* [Citation](#citation)
 
 
 
