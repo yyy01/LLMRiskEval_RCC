@@ -68,7 +68,7 @@ def main() :
         "--api_key",
         type = str,
         nargs = "+",
-        default = ['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']
+        default = None
     )
 
     parser.add_argument(
